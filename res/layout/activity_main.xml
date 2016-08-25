@@ -59,12 +59,19 @@
 	            android:text="扫描" 
 	            android:background="@drawable/bg_alibuybutton"/>         
        		</LinearLayout>
-       		<ListView 
-       		    android:layout_width="fill_parent"
-       		    android:layout_height="fill_parent"
-       		    android:layout_weight="1"
-       		    android:layout_gravity="center">
-       		</ListView> 
+       		<LinearLayout 
+       		  	android:layout_width="match_parent"
+			    android:layout_height="match_parent"
+			    android:layout_weight="1"
+			    android:gravity="center"
+			    android:orientation="horizontal">
+         		<GridView 
+	       		    android:id="@+id/scan_result"
+	       		    android:layout_width="match_parent"
+	       		    android:layout_height="match_parent"
+	       		    android:background="#EAEBEB"></GridView>     		    
+       		</LinearLayout>
+
 	   </LinearLayout>
 	   <LinearLayout
 		android:layout_width="fill_parent"
