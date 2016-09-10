@@ -3,26 +3,88 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" 
     android:orientation="horizontal">
-    
-     <LinearLayout
-		android:layout_width="fill_parent"
+
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="2"
-        android:gravity="center"
-        android:orientation="vertical">
-       <LinearLayout 
+        android:layout_weight="1"
+        android:orientation="vertical" >
+
+        <SurfaceView
+            android:id="@+id/mediarecorder2_Surfaceview"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="4"
-            android:gravity="center"
-            android:orientation="horizontal">
-            <EditText 
-                android:id="@+id/cur_freq"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="8"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/start"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
+                android:background="@drawable/bg_alibuybutton"
+                android:text="录像" />
+
+            <Button
+                android:id="@+id/stop"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_alibuybutton"
+                android:text="暂停" />
+        </LinearLayout>
+    </LinearLayout>
+    <AbsoluteLayout 
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="2">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_x="0dp"
+            android:layout_y="0dp"
+            android:gravity="left"
+            android:text="当前监视频率" />
+        <LinearLayout 
+            android:layout_width="fill_parent"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:layout_x="0dp"
+            android:layout_y="20dp"
+            android:orientation="horizontal">
+            <Button
+				android:id="@+id/freq_down"
+	            android:layout_width="fill_parent"
+	            android:layout_height="fill_parent"
+	            android:layout_weight="4"
+	            android:text="-" 
+	            android:background="@drawable/bg_alibuybutton"/> 
+
+            <EditText
+                android:id="@+id/cur_freq"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
                 android:background="@drawable/bg_edittext"
-                android:hint="请输出当前频率"/>
+                android:hint="请输出当前频率" />
+
+            <Spinner
+                android:id="@+id/curFreqRange"
+                android:layout_width="60dp"
+                android:layout_height="fill_parent" />
+
+            <Button
+				android:id="@+id/freq_up"
+	            android:layout_width="fill_parent"
+	            android:layout_height="fill_parent"
+	            android:layout_weight="4"
+	            android:text="+" 
+	            android:background="@drawable/bg_alibuybutton"/>             
             <Button
 				android:id="@+id/freq_set"
 	            android:layout_width="fill_parent"
@@ -30,12 +92,21 @@
 	            android:layout_weight="4"
 	            android:text="设置" 
 	            android:background="@drawable/bg_alibuybutton"/> 
-        </LinearLayout>
-		<LinearLayout 
-		    android:layout_width="match_parent"
-		    android:layout_height="match_parent"
-		    android:layout_weight="4"
+        </LinearLayout>        
+  
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="20dp"
+            android:layout_x="0dp"
+            android:layout_y="100dp"
+            android:gravity="left"
+            android:text="频率扫描参数" />
+        <LinearLayout 
+		    android:layout_width="fill_parent"
+		    android:layout_height="60dp"
 		    android:gravity="center"
+		    android:layout_x="0dp"
+		    android:layout_y="120dp"
 		    android:orientation="horizontal">
             <EditText 
                 android:id="@+id/scan_freq_start"
@@ -44,6 +115,11 @@
                 android:layout_weight="2"
                 android:background="@drawable/bg_edittext"
                 android:hint="请输入扫描开始频率"/>
+            <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="fill_parent"
+	            android:text="至" 
+	            android:gravity="center_vertical"/>
          	<EditText 
                 android:id="@+id/scan_freq_stop"
                 android:layout_width="fill_parent"
@@ -53,74 +129,31 @@
                 android:hint="请输入扫描结束频率"/>
 		    <Button
 				android:id="@+id/scan"
-	            android:layout_width="match_parent"
-	            android:layout_height="match_parent"
+	            android:layout_width="fill_parent"
+	            android:layout_height="fill_parent"
 	            android:layout_weight="2.7"
 	            android:text="扫描" 
 	            android:background="@drawable/bg_alibuybutton"/>         
        		</LinearLayout>
-       		<LinearLayout 
-       		  	android:layout_width="match_parent"
-			    android:layout_height="match_parent"
-			    android:layout_weight="1"
-			    android:gravity="center"
-			    android:orientation="vertical">
-		    	<Button 
-		    	    android:id="@+id/serial_test"
-		    	    android:layout_width="match_parent"
-		    	    android:layout_height="wrap_content"
-		    	    android:text="串口测试"
-		    	    android:background="@drawable/bg_alibuybutton"/>
-		    	<Button 
-		    	    android:id="@+id/serial_send"
-		    	    android:layout_width="match_parent"
-		    	    android:layout_height="wrap_content"
-		    	    android:text="串口发送"
-		    	    android:background="@drawable/bg_alibuybutton"/>
-		      	<TextView 
-         		    android:id="@+id/serial_recv"
-         		    android:layout_width="fill_parent"
-         		    android:layout_height="fill_parent"/>
-         		<GridView 
-	       		    android:id="@+id/scan_result"
-	       		    android:layout_width="match_parent"
-	       		    android:layout_height="match_parent"
-	       		    android:background="#EAEBEB"></GridView>
-            		    
-       		</LinearLayout>
+        
+       		<LinearLayout
+       		    android:layout_width="fill_parent"
+       		    android:layout_height="260dp"
+       		    android:layout_x="0dp"
+       		    android:layout_y="200dp"
+       		    android:gravity="center"
+       		    android:orientation="vertical" >
 
-	   </LinearLayout>
-	   <LinearLayout
-		android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
-	        <SurfaceView
-				android:id="@+id/mediarecorder2_Surfaceview"
-	            android:layout_width="fill_parent"
-	            android:layout_height="fill_parent" 
-	            android:layout_weight="1"/>
-	        <LinearLayout 
-	            android:layout_width="fill_parent"
-	            android:layout_height="fill_parent"
-	            android:layout_weight="8"
-	            android:orientation="horizontal">
-			       <Button
-						android:id="@+id/start"
-			            android:layout_width="fill_parent"
-			            android:layout_height="fill_parent"
-			            android:layout_weight="1"
-			            android:text="录像" 
-			            android:background="@drawable/bg_alibuybutton"/>
-			
-			        <Button
-						android:id="@+id/stop"
-			            android:layout_width="fill_parent"
-			            android:layout_height="fill_parent"
-			            android:layout_weight="1"
-			            android:text="暂停" 
-			            android:background="@drawable/bg_alibuybutton"/> 	            
-	        </LinearLayout>
- 
-    	</LinearLayout>	
+		      	<TextView
+		      	    android:id="@+id/serial_recv"
+		      	    android:layout_width="fill_parent"
+		      	    android:layout_height="281dp"
+		      	    android:fadeScrollbars="false"
+		      	    android:scrollbars="vertical"
+		      	    android:singleLine="false" />
+        		    
+       		</LinearLayout>        
+        
+    </AbsoluteLayout>
+    
 </LinearLayout>
