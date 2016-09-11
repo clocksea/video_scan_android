@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.StringTokenizer;
 //import org.xboot.test.SerialActivity.ReadThread;
 import com.android.serialport.SerialPort;
+import com.example.explorer.ExDialog;
 
 import android.R.integer;
 import android.R.string;
@@ -14,9 +16,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -26,25 +30,30 @@ import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.method.DigitsKeyListener;
 import android.text.method.ScrollingMovementMethod;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 
 
 public class MainActivity extends Activity {
 	private Button bt_start_record;
-	private Button bt_stop_record;
+	private Button btPlayOld;
 	private SurfaceView mSurfaceview;         // 显示视频的控件
 	private MediaRecorder mMediaRecorder;     // MediaRecorder对象，錄製視頻的類
 	private SurfaceHolder mSurfaceHolder;    // 
@@ -59,15 +68,16 @@ public class MainActivity extends Activity {
 	private SurfaceHolder.Callback callback;
 	private Button curFreqUpButton;
 	private Button curFreqDownButton;
-	private Button freqSet;
+//	private Button freqSet;
 	private EditText curFreqEditText;
-	private long curFreqHz=1080*1000*1000;
-	private long maxFreqHz=(long)2530*1000*1000;
-	private long minFreqHz=(long)980*1000*1000;
-	private long freqHz=(long)980*1000*1000;
-	private long freqSpanHz=(long)100*1000;
-	private long MHZ=(long)1000*1000;
-	private long KHZ=(long)1000;
+	private double curFreqHz=(double)1080*1000*1000;
+	private double maxFreqHz=(double)2530*1000*1000;
+	private double minFreqHz=(double)980*1000*1000;
+	private double freqHz=(double)980*1000*1000;
+	private double freqSpanHz=(double)100*1000;
+	private double MHZ=(double)1000*1000;
+	private double KHZ=(double)1000;
+	private static final int REQUEST_EX = 1;
 	
 	//串口测试临时数据----start
 	private Button mBtnStart;
@@ -85,9 +95,16 @@ public class MainActivity extends Activity {
 			super.handleMessage(msg);
 			switch (msg.what) {
 			case 1:
-				String data = msg.getData().getString("RECV");
-				refreshLogView("RECV:" + data + "\r\n");
+				String dataRecv = msg.getData().getString("RECV");
+				if(dataRecv!=null)
+					refreshLogView("RECV:" + dataRecv + "\r\n");
+				String dataSend = msg.getData().getString("SEND");
+				if(dataSend!=null)
+					refreshLogView("SEND:" + dataSend + "\r\n");				
 				//mTextMsg.append("RECV:" + data + "\r\n");
+				break;
+			case 2:
+				curFreqEditText.setText(msg.getData().getString("FREQ")+"");
 				break;
 			default:
 				break;
@@ -117,14 +134,16 @@ public class MainActivity extends Activity {
 	private void freqInputErrDialog(Context context, String msg){ 	  
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		final AlertDialog dialog; 
-		builder.setTitle("错误:" + msg + "Hz");//设置标题 
+		builder.setTitle("错误:" + msg + "MHz");//设置标题 
 		builder.setIcon(R.drawable.ic_launcher);//设置图标 
-		builder.setMessage("频率超出范围" + "(" + minFreqHz/MHZ + "-" + maxFreqHz/MHZ +"MHz)");//设置内容
+		builder.setMessage("频率超出范围" + "(" + minFreqHz/MHZ + "-" + maxFreqHz/MHZ +"MHz)" 
+								+ "\r\n" + "请重新输入");//设置内容
 		builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				// TODO Auto-generated method stub
 				dialog.dismiss();
+				printfCurFreqToScreen(curFreqHz);
 			}
 		});
 		dialog=builder.show(); 	
@@ -136,7 +155,7 @@ public class MainActivity extends Activity {
 		if(offset>mTextMsg.getHeight()){
 			mTextMsg.scrollTo(0,offset-mTextMsg.getHeight());
 		}
-	}
+	};
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,15 +171,15 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
               
         bt_start_record = (Button) findViewById(R.id.start);
-        bt_stop_record = (Button) findViewById(R.id.stop);
-        freqSet = (Button) findViewById(R.id.freq_set);
+        btPlayOld = (Button) findViewById(R.id.playOld);
+//        freqSet = (Button) findViewById(R.id.freq_set);
         curFreqDownButton = (Button) findViewById(R.id.freq_down);
         curFreqUpButton = (Button) findViewById(R.id.freq_up);
         curFreqEditText = (EditText) findViewById(R.id.cur_freq);
-        curFreqEditText.setInputType(EditorInfo.TYPE_CLASS_PHONE);
+        curFreqEditText.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
         curFreqEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
         curFreqEditText.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
-        curFreqEditText.setText(Long.toString(curFreqHz));
+//        curFreqEditText.setText(Double.toString(curFreqHz));
         curFreqEditText.addTextChangedListener(curFreqTextWatcher);
         curFreqEditText.setOnFocusChangeListener(new android.view.View.OnFocusChangeListener() {  
             @Override  
@@ -169,7 +188,7 @@ public class MainActivity extends Activity {
 		        // 此处为得到焦点时的处理内容
 		        } else {
 		        // 此处为失去焦点时的处理内容
-					long tmpValue=Long.parseLong(curFreqEditText.getText().toString());
+		        	double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
 					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
 						freqInputErrDialog(MainActivity.this,"");
 					}else {
@@ -178,6 +197,28 @@ public class MainActivity extends Activity {
 		        }
             }
         });
+        curFreqEditText.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				// TODO Auto-generated method stub
+				if(actionId == EditorInfo.IME_ACTION_DONE){
+		        	double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
+					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
+						freqInputErrDialog(MainActivity.this,Double.toString(tmpValue/MHZ));
+					}else {
+						curFreqHz = tmpValue;
+						setCurFreqSerialPort(curFreqHz);
+						InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE); 
+						imm.hideSoftInputFromWindow(curFreqEditText.getWindowToken(), 0);
+					}					
+					return true;
+				}
+				return false;
+			}
+		});
+        
+        printfCurFreqToScreen(curFreqHz);
 //        mBtnStart = (Button)findViewById(R.id.serial_test);
 //        mBtnSend = (Button)findViewById(R.id.serial_send);
         mTextMsg = (TextView)findViewById(R.id.serial_recv);
@@ -187,45 +228,120 @@ public class MainActivity extends Activity {
 		mTextMsg.setText("");
 		serialTest("/dev/ttyAMA1");
 		
-		freqSet.setOnClickListener(new OnClickListener() {
+		btPlayOld.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				long tmpValue=Long.parseLong(curFreqEditText.getText().toString());
-				if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
-					freqInputErrDialog(MainActivity.this,"");
-				}else {
-					curFreqHz = tmpValue;
-					serialSendDatas("AT_SMFREQ=" + curFreqHz/KHZ + "\r\n");
-				}
+				Intent intent = new Intent();
+				intent.putExtra("explorer_title",
+						getString(R.string.dialog_read_from_dir));
+				intent.setDataAndType(Uri.fromFile(new File("/storage/sdcard1")), "*/*");
+				intent.setClass(MainActivity.this, ExDialog.class);
+				startActivityForResult(intent, REQUEST_EX);
 			}
 		});
+		
+//		freqSet.setOnClickListener(new OnClickListener() {
+//			
+//			@Override
+//			public void onClick(View v) {
+//				// TODO Auto-generated method stub
+//				double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
+//				if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
+//					freqInputErrDialog(MainActivity.this,"");
+//				}else {
+//					curFreqHz = tmpValue;
+//					setCurFreqSerialPort(curFreqHz);
+////					serialSendDatas("AT_SMFREQ=" + curFreqHz/KHZ + "\r\n");
+//				}
+//			}
+//		});
 		
 		curFreqUpButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				if((curFreqHz+freqSpanHz)<=maxFreqHz){
-					curFreqHz += freqSpanHz;//add 100KHz
-					curFreqEditText.setText(Long.toString(curFreqHz));
-				}
-				else {
-					freqInputErrDialog(MainActivity.this,Long.toString(curFreqHz+freqSpanHz));
-				}
+				curFreqUpProcess();
 	
 			}
 		});	
+		
+		curFreqUpButton.setOnTouchListener(new OnTouchListener() {
+			boolean upLongClicked; 
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				// TODO Auto-generated method stub
+				if(event.getAction() == MotionEvent.ACTION_DOWN) {
+					curFreqUpButton.setBackgroundResource(R.drawable.bg_alibuybutton_pressed);
+					upLongClicked = true; 
+					Thread t = new Thread(){
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							super.run();
+							while(upLongClicked){
+								curFreqUpProcess();
+								try{  
+                                    Thread.sleep(250);  
+                                }catch(InterruptedException e){  
+                                    e.printStackTrace();  
+                                }
+							}
+						}
+						
+					};
+					t.start();
+					return true;
+				}else if (event.getAction() == MotionEvent.ACTION_UP) {
+					upLongClicked = false;
+					curFreqUpButton.setBackgroundResource(R.drawable.bg_alibuybutton_default);
+					return true;
+				}
+				return false;
+			}
+		});
 		curFreqDownButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				if(curFreqHz>=minFreqHz+freqSpanHz){
-					curFreqHz -=freqSpanHz;
-					curFreqEditText.setText(Long.toString(curFreqHz));	
-				}else {
-					freqInputErrDialog(MainActivity.this,Long.toString(curFreqHz-freqSpanHz));
+				curFreqDownProcess();
+			}
+		});
+		
+		
+		curFreqDownButton.setOnTouchListener(new OnTouchListener() {
+			boolean downLongClicked; 
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				// TODO Auto-generated method stub
+				if(event.getAction() == MotionEvent.ACTION_DOWN) {
+					curFreqDownButton.setBackgroundResource(R.drawable.bg_alibuybutton_pressed);
+					downLongClicked = true; 
+					Thread t = new Thread(){
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							super.run();
+							while(downLongClicked){
+								curFreqDownProcess();
+								try{  
+                                    Thread.sleep(250);  
+                                }catch(InterruptedException e){  
+                                    e.printStackTrace();  
+                                }
+							}
+						}
+						
+					};
+					t.start();
+					return true;
+				}else if (event.getAction() == MotionEvent.ACTION_UP) {
+					downLongClicked = false;
+					curFreqDownButton.setBackgroundResource(R.drawable.bg_alibuybutton_default);
+					return true;
 				}
+				return false;
 			}
 		});
 		
@@ -251,6 +367,17 @@ public class MainActivity extends Activity {
         
     }
 
+	protected void onActivityResult(int requestCode, int resultCode,
+			Intent intent) {
+		String path;
+		if (resultCode == RESULT_OK) {
+			if (requestCode == REQUEST_EX) {
+				Uri uri = intent.getData();
+				mTextMsg.append("select: " + uri);
+			}
+		}
+	};
+    
     private void initSurfaceView() {
     	mSurfaceview = (SurfaceView) this.findViewById(R.id.mediarecorder2_Surfaceview); 
     	mSurfaceview.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -287,7 +414,7 @@ public class MainActivity extends Activity {
 		};
         //为SurfaceView设置回调函数
         mSurfaceview.getHolder().addCallback(callback);
-    }
+    };
     
     //当我们的程序开始运行，即使我们没有开始录制视频，我们的surFaceView中也要显示当前摄像头显示的内容
     private void doChange(SurfaceHolder holder) {
@@ -311,7 +438,7 @@ public class MainActivity extends Activity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
+    };
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -374,16 +501,17 @@ public class MainActivity extends Activity {
 					byte[] buffer = new byte[256];
 					size = mInputStream.read(buffer);
 					if (size > 0) {
-						String data = new String(buffer, 0, size);
-						//if (mTestString.equals(data)) {
-							Message msg = new Message();
-							msg.what = 1;
-							Bundle bundle = new Bundle();
-							bundle.putString("RECV", new String(mDevice
-									+ " RECV : " + data));
-							msg.setData(bundle);
-							mHandler.sendMessage(msg);
-						//}
+						refreshSerialRecvLogView(size,buffer);
+//						String data = new String(buffer, 0, size);
+//						//if (mTestString.equals(data)) {
+//							Message msg = new Message();
+//							msg.what = 1;
+//							Bundle bundle = new Bundle();
+//							bundle.putString("RECV", new String(mDevice
+//									+ " RECV : " + data));
+//							msg.setData(bundle);
+//							mHandler.sendMessage(msg);
+//						//}
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -418,10 +546,80 @@ public class MainActivity extends Activity {
 			//outStr.append(device);
 			//mOutputStream.write(outStr.toString().getBytes());
 			mOutputStream.write(datas.getBytes());
-			refreshLogView("SEND:" + datas + "\r\n");
+			refreshSerialSendLogView(datas);
 			//mTextMsg.append("SEND:" + datas + "\r\n");
 		} catch (IOException e) {
 			e.printStackTrace();
+		}	
+	}
+	
+	public void refreshSerialSendLogView(String datas) {
+		Message msg = new Message();
+		msg.what = 1;
+		Bundle bundle = new Bundle();
+		bundle.putString("SEND", datas);
+		msg.setData(bundle);
+		mHandler.sendMessage(msg);	
+	}
+
+	public void refreshSerialRecvLogView(int size,byte[] buffer) {
+		String datas = new String(buffer, 0, size);
+		Message msg = new Message();
+		msg.what = 1;
+		Bundle bundle = new Bundle();
+		bundle.putString("RECV", datas);
+		msg.setData(bundle);
+		mHandler.sendMessage(msg);
+	}
+	
+	public void printfCurFreqToScreen(double curFreq) {
+		Message msg = new Message();
+		msg.what = 2;
+		Bundle bundle = new Bundle();
+		bundle.putString("FREQ", Double.toString(curFreq/MHZ));
+		msg.setData(bundle);
+		mHandler.sendMessage(msg);
+		
+//		curFreqEditText.setText(Double.toString(curFreq/MHZ)+"");
+	}
+
+	public double scanfCurFreqFromScreen(EditText curFreqET) {
+		StringTokenizer st= new StringTokenizer(curFreqET.getText().toString());
+		double tmpValue=Double.parseDouble(st.nextToken());
+		
+		return tmpValue*MHZ;
+	}
+	
+	public void setCurFreqSerialPort(double curFreq) {
+		long tmp= (long)(curFreqHz/KHZ);
+		serialSendDatas("AT_SMFREQ=" + tmp + "\r\n");
+		return;
+	}
+	
+	public void curFreqUpProcess() {
+		
+		if((curFreqHz+freqSpanHz)<=maxFreqHz){
+			curFreqHz += freqSpanHz;//add 100KHz
+			printfCurFreqToScreen(curFreqHz);
+			setCurFreqSerialPort(curFreqHz);
+//			curFreqEditText.setText(Long.toString(curFreqHz));
+//			serialSendDatas("AT_SMFREQ=" + (long)curFreqHz/KHZ + "\r\n");
+		}
+		else {
+			freqInputErrDialog(MainActivity.this,Double.toString(curFreqHz+freqSpanHz));
+		}
+		return;
+	}
+	
+	public void curFreqDownProcess() {
+		if(curFreqHz>=minFreqHz+freqSpanHz){
+			curFreqHz -=freqSpanHz;
+			printfCurFreqToScreen(curFreqHz);
+			setCurFreqSerialPort(curFreqHz);
+//			curFreqEditText.setText(Long.toString(curFreqHz));
+//			serialSendDatas("AT_SMFREQ=" + curFreqHz/KHZ + "\r\n");
+		}else {
+			freqInputErrDialog(MainActivity.this,Double.toString(curFreqHz-freqSpanHz));
 		}	
 	}
 }

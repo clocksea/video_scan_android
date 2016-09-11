@@ -2,7 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" 
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:baselineAligned="false">
 
     <LinearLayout
         android:layout_width="fill_parent"
@@ -31,12 +32,12 @@
                 android:text="录像" />
 
             <Button
-                android:id="@+id/stop"
+                android:id="@+id/playOld"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:background="@drawable/bg_alibuybutton"
-                android:text="暂停" />
+                android:text="播放历史录像" />
         </LinearLayout>
     </LinearLayout>
     <AbsoluteLayout 
@@ -71,12 +72,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
                 android:background="@drawable/bg_edittext"
+                android:imeOptions="actionDone"
                 android:hint="请输出当前频率" />
+            <TextView 
+                android:id="@+id/freqUnit"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:background="@drawable/bg_edittext"
+                android:gravity="center_vertical"
+                android:hint="MHz"/>
 
-            <Spinner
+<!--             <Spinner
                 android:id="@+id/curFreqRange"
                 android:layout_width="60dp"
-                android:layout_height="fill_parent" />
+                android:layout_height="fill_parent" /> -->
 
             <Button
 				android:id="@+id/freq_up"
@@ -85,13 +94,13 @@
 	            android:layout_weight="4"
 	            android:text="+" 
 	            android:background="@drawable/bg_alibuybutton"/>             
-            <Button
+<!--             <Button
 				android:id="@+id/freq_set"
 	            android:layout_width="fill_parent"
 	            android:layout_height="fill_parent"
 	            android:layout_weight="4"
 	            android:text="设置" 
-	            android:background="@drawable/bg_alibuybutton"/> 
+	            android:background="@drawable/bg_alibuybutton"/>  -->
         </LinearLayout>        
   
         <TextView
