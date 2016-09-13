@@ -11,6 +11,28 @@
         android:layout_weight="1"
         android:orientation="vertical" >
 
+        <LinearLayout 
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+	         <TextView
+	            android:id="@+id/curFreqInfo"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:gravity="left"
+				android:layout_weight="1"
+				android:background="@drawable/bg_edittext_normal"
+				android:text="当前监视频率" />
+	         <TextView
+	            android:id="@+id/curRSSIInfo"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:gravity="left"
+	            android:layout_weight="1"
+	            android:background="@drawable/bg_edittext_normal"
+	            android:text="当前场强" />           
+        </LinearLayout>
+        
         <SurfaceView
             android:id="@+id/mediarecorder2_Surfaceview"
             android:layout_width="fill_parent"
@@ -80,7 +102,7 @@
                 android:layout_height="fill_parent"
                 android:background="@drawable/bg_edittext"
                 android:gravity="center_vertical"
-                android:hint="MHz"/>
+                android:text="MHz"/>
 
 <!--             <Spinner
                 android:id="@+id/curFreqRange"
@@ -117,51 +139,68 @@
 		    android:layout_x="0dp"
 		    android:layout_y="120dp"
 		    android:orientation="horizontal">
-            <EditText 
+
+            <EditText
                 android:id="@+id/scan_freq_start"
-                android:layout_width="fill_parent"
+                android:layout_width="127dp"
                 android:layout_height="fill_parent"
-                android:layout_weight="2"
                 android:background="@drawable/bg_edittext"
-                android:hint="请输入扫描开始频率"/>
+                android:hint="开始频率" />
+
+            <TextView 
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:background="@drawable/bg_edittext"
+                android:gravity="center_vertical"
+                android:text="MHz"/>            
             <TextView
 	            android:layout_width="wrap_content"
 	            android:layout_height="fill_parent"
 	            android:text="至" 
 	            android:gravity="center_vertical"/>
-         	<EditText 
-                android:id="@+id/scan_freq_stop"
-                android:layout_width="fill_parent"
+
+         	<EditText
+         	    android:id="@+id/scan_freq_stop"
+         	    android:layout_width="127dp"
+         	    android:layout_height="fill_parent"
+         	    android:background="@drawable/bg_edittext"
+         	    android:hint="结束频率" />
+
+            <TextView 
+                android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
-                android:layout_weight="2"
                 android:background="@drawable/bg_edittext"
-                android:hint="请输入扫描结束频率"/>
-		    <Button
-				android:id="@+id/scan"
-	            android:layout_width="fill_parent"
-	            android:layout_height="fill_parent"
-	            android:layout_weight="2.7"
-	            android:text="扫描" 
-	            android:background="@drawable/bg_alibuybutton"/>         
-       		</LinearLayout>
+                android:gravity="center_vertical"
+                android:text="MHz"/>         	
         
+       		</LinearLayout>   
+       		<Button
+       		    android:id="@+id/scan"
+       		    android:layout_width="fill_parent"
+       		    android:layout_height="40dp"
+       		    android:layout_x="-1dp"
+       		    android:layout_y="185dp"
+       		    android:background="@drawable/bg_alibuybutton"
+       		    android:text="扫描" />   
        		<LinearLayout
        		    android:layout_width="fill_parent"
-       		    android:layout_height="260dp"
+       		    android:layout_height="210dp"
        		    android:layout_x="0dp"
-       		    android:layout_y="200dp"
+       		    android:layout_y="250dp"
        		    android:gravity="center"
        		    android:orientation="vertical" >
 
-		      	<TextView
-		      	    android:id="@+id/serial_recv"
-		      	    android:layout_width="fill_parent"
-		      	    android:layout_height="281dp"
-		      	    android:fadeScrollbars="false"
-		      	    android:scrollbars="vertical"
-		      	    android:singleLine="false" />
+       			<TextView
+       			    android:id="@+id/serial_recv"
+       			    android:layout_width="fill_parent"
+       			    android:layout_height="224dp"
+       			    android:fadeScrollbars="false"
+       			    android:scrollbars="vertical"
+       			    android:singleLine="false" />
         		    
-       		</LinearLayout>        
+       		</LinearLayout>
+
+
         
     </AbsoluteLayout>
     

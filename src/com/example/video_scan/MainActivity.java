@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.CharBuffer;
 import java.util.StringTokenizer;
 //import org.xboot.test.SerialActivity.ReadThread;
 import com.android.serialport.SerialPort;
@@ -68,8 +69,11 @@ public class MainActivity extends Activity {
 	private SurfaceHolder.Callback callback;
 	private Button curFreqUpButton;
 	private Button curFreqDownButton;
+	private Button scanButton;
 //	private Button freqSet;
 	private EditText curFreqEditText;
+	private EditText scanFreqStartEditText;
+	private EditText scanFreqStopEditText;	
 	private double curFreqHz=(double)1080*1000*1000;
 	private double maxFreqHz=(double)2530*1000*1000;
 	private double minFreqHz=(double)980*1000*1000;
@@ -77,7 +81,14 @@ public class MainActivity extends Activity {
 	private double freqSpanHz=(double)100*1000;
 	private double MHZ=(double)1000*1000;
 	private double KHZ=(double)1000;
+	private double scanStartFreqHz=(double)980*1000*1000;
+	private double scanStopFreqHz=(double)1300*1000*1000;
+	private long scanSpanHz=4*1000*1000;
+	private TextView curFreqInfoTextView;
+	private StringBuffer serialStringBuffer=new StringBuffer();
+	
 	private static final int REQUEST_EX = 1;
+	
 	
 	//串口测试临时数据----start
 	private Button mBtnStart;
@@ -96,8 +107,10 @@ public class MainActivity extends Activity {
 			switch (msg.what) {
 			case 1:
 				String dataRecv = msg.getData().getString("RECV");
-				if(dataRecv!=null)
-					refreshLogView("RECV:" + dataRecv + "\r\n");
+				if(dataRecv!=null){
+					//refreshLogView("RECV:" + dataRecv + "\r\n");
+					procSerialRecvDatas(dataRecv);
+				}
 				String dataSend = msg.getData().getString("SEND");
 				if(dataSend!=null)
 					refreshLogView("SEND:" + dataSend + "\r\n");				
@@ -105,12 +118,71 @@ public class MainActivity extends Activity {
 				break;
 			case 2:
 				curFreqEditText.setText(msg.getData().getString("FREQ")+"");
+				curFreqInfoTextView.setText("当前监视频率为:" + msg.getData().getString("FREQ")+ "MHz");
 				break;
 			default:
 				break;
 			}
 		}
 	};
+	
+	private void procSerialRecvDatas(String dataRecv) {
+		serialStringBuffer.append(dataRecv);
+		String [] strArrayStrings = serialStringBuffer.toString().split("\n");
+	
+		for (int i = 0; i < strArrayStrings.length; i++){
+			if(strArrayStrings[i].indexOf("\r") != -1){
+				serialStringBuffer.delete(0, strArrayStrings[i].length()+1);
+				procSerialCmd(strArrayStrings[i]+"\n");
+			}
+		}
+		
+	};
+	
+	private void procSerialCmd(String cmdString) {
+		//refreshLogView(cmdString);
+		if(cmdString.indexOf("AT_START_RUN\r\n")!=-1){
+			setCurFreqSerialPort(curFreqHz);
+			curFreqDownButton.setClickable(true);
+			curFreqUpButton.setClickable(true);				
+			scanButton.setClickable(true);
+		}else if(cmdString.indexOf("AT_SCAN_START\r\n")!=-1){
+			scanButton.setClickable(false);
+			curFreqDownButton.setClickable(false);
+			curFreqUpButton.setClickable(false);
+			scanButton.setText("扫描中,请等待...");
+			
+		}else if(cmdString.indexOf("AT_SCAN_STOP\r\n")!=-1){
+			scanButton.setClickable(true);
+			curFreqDownButton.setClickable(true);
+			curFreqUpButton.setClickable(true);			
+			scanButton.setText("扫描");
+			setCurFreqSerialPort(curFreqHz);
+		}else if(cmdString.indexOf("AT_RSSI=")!=-1){
+			//refreshLogView(cmdString);
+			procATRSSIMsg(cmdString);
+		}
+	};
+	
+	private void procATRSSIMsg(String atRSSIString) {
+		String tmp=atRSSIString.substring("AT_RSSI=".length());
+		String [] strArrayStrings = tmp.split(",");
+		Double freqMHzDouble;
+		Double rssiDouble;
+		
+		if(strArrayStrings.length!=3)
+			return;
+		rssiDouble=Double.valueOf(strArrayStrings[2]);
+		if(rssiDouble>700)
+			return;
+		freqMHzDouble=Double.valueOf(strArrayStrings[1])/KHZ;
+		refreshLogView("频率:"+freqMHzDouble.toString()+"MHz"+",     场强:"+strArrayStrings[2]);
+		
+//		for (int i = 0; i < strArrayStrings.length; i++){
+//			refreshLogView(strArrayStrings[i]);
+//		}		
+	};
+	
 	
 	private TextWatcher curFreqTextWatcher = new TextWatcher() {
 		
@@ -149,6 +221,24 @@ public class MainActivity extends Activity {
 		dialog=builder.show(); 	
 	};
 	
+	private void scanFreqInputErrDialog(Context context, String msg){ 	  
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		final AlertDialog dialog; 
+		builder.setTitle("错误:" + msg);//设置标题 
+		builder.setIcon(R.drawable.ic_launcher);//设置图标 
+		builder.setMessage("扫描频率输入错误" + "请重新输入");//设置内容
+		builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+				dialog.dismiss();
+			}
+		});
+		dialog=builder.show(); 	
+	};
+	
+	
+	
 	void refreshLogView(String msg){
 		mTextMsg.append(msg);
 		int offset=mTextMsg.getLineCount()*mTextMsg.getLineHeight();
@@ -175,48 +265,12 @@ public class MainActivity extends Activity {
 //        freqSet = (Button) findViewById(R.id.freq_set);
         curFreqDownButton = (Button) findViewById(R.id.freq_down);
         curFreqUpButton = (Button) findViewById(R.id.freq_up);
-        curFreqEditText = (EditText) findViewById(R.id.cur_freq);
-        curFreqEditText.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
-        curFreqEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
-        curFreqEditText.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
-//        curFreqEditText.setText(Double.toString(curFreqHz));
-        curFreqEditText.addTextChangedListener(curFreqTextWatcher);
-        curFreqEditText.setOnFocusChangeListener(new android.view.View.OnFocusChangeListener() {  
-            @Override  
-            public void onFocusChange(View v, boolean hasFocus) {  
-                if(hasFocus) {
-		        // 此处为得到焦点时的处理内容
-		        } else {
-		        // 此处为失去焦点时的处理内容
-		        	double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
-					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
-						freqInputErrDialog(MainActivity.this,"");
-					}else {
-						curFreqHz = tmpValue;
-					}
-		        }
-            }
-        });
-        curFreqEditText.setOnEditorActionListener(new OnEditorActionListener() {
-			
-			@Override
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				// TODO Auto-generated method stub
-				if(actionId == EditorInfo.IME_ACTION_DONE){
-		        	double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
-					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
-						freqInputErrDialog(MainActivity.this,Double.toString(tmpValue/MHZ));
-					}else {
-						curFreqHz = tmpValue;
-						setCurFreqSerialPort(curFreqHz);
-						InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE); 
-						imm.hideSoftInputFromWindow(curFreqEditText.getWindowToken(), 0);
-					}					
-					return true;
-				}
-				return false;
-			}
-		});
+        scanButton = (Button) findViewById(R.id.scan);
+        curFreqInfoTextView = (TextView) findViewById(R.id.curFreqInfo);
+        
+        curFreqEditTextInit();
+        scanStartFreqEditTextInit();
+        scanStopFreqEditTextInit();
         
         printfCurFreqToScreen(curFreqHz);
 //        mBtnStart = (Button)findViewById(R.id.serial_test);
@@ -227,6 +281,20 @@ public class MainActivity extends Activity {
         
 		mTextMsg.setText("");
 		serialTest("/dev/ttyAMA1");
+		
+		scanButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				if(scanStartFreqHz>scanStopFreqHz)
+				{
+					scanFreqInputErrDialog(MainActivity.this,"");
+				}else {
+					setScanFreqSerialPort(scanStartFreqHz,scanStopFreqHz);
+				}
+			}
+		});
 		
 		btPlayOld.setOnClickListener(new OnClickListener() {
 			
@@ -596,6 +664,14 @@ public class MainActivity extends Activity {
 		return;
 	}
 	
+	public void setScanFreqSerialPort(double scanStartFreq,double scanStopFreq) {
+		long tmp1= (long)(scanStartFreq/KHZ);
+		long tmp2= (long)(scanStopFreq/KHZ);
+		long tmp3= (long)(scanSpanHz/KHZ);
+		serialSendDatas("AT_SCAN=" + tmp1 + ","+ tmp2 + "," + tmp3 +"\r\n");
+		return;
+	}
+	
 	public void curFreqUpProcess() {
 		
 		if((curFreqHz+freqSpanHz)<=maxFreqHz){
@@ -622,4 +698,141 @@ public class MainActivity extends Activity {
 			freqInputErrDialog(MainActivity.this,Double.toString(curFreqHz-freqSpanHz));
 		}	
 	}
+	
+	public void curFreqEditTextInit() {
+        curFreqEditText = (EditText) findViewById(R.id.cur_freq);
+        curFreqEditText.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
+        curFreqEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
+        curFreqEditText.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+//        curFreqEditText.setText(Double.toString(curFreqHz));
+        curFreqEditText.addTextChangedListener(curFreqTextWatcher);
+        curFreqEditText.setOnFocusChangeListener(new android.view.View.OnFocusChangeListener() {  
+            @Override  
+            public void onFocusChange(View v, boolean hasFocus) {  
+                if(hasFocus) {
+		        // 此处为得到焦点时的处理内容
+		        } else {
+		        // 此处为失去焦点时的处理内容
+		        	double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
+					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
+						freqInputErrDialog(MainActivity.this,"");
+					}else {
+						curFreqHz = tmpValue;
+					}
+		        }
+            }
+        });
+        curFreqEditText.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				// TODO Auto-generated method stub
+				if(actionId == EditorInfo.IME_ACTION_DONE){
+		        	double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
+					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
+						freqInputErrDialog(MainActivity.this,Double.toString(tmpValue/MHZ));
+					}else {
+						curFreqHz = tmpValue;
+						setCurFreqSerialPort(curFreqHz);
+						InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE); 
+						imm.hideSoftInputFromWindow(curFreqEditText.getWindowToken(), 0);
+					}					
+					return true;
+				}
+				return false;
+			}
+		});		
+		
+	}
+	
+	public void scanStartFreqEditTextInit() {
+        scanFreqStartEditText = (EditText) findViewById(R.id.scan_freq_start);
+        scanFreqStartEditText.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
+        scanFreqStartEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
+        scanFreqStartEditText.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+        scanFreqStartEditText.setText(Double.toString(scanStartFreqHz/MHZ));
+//        scanFreqStartEditText.addTextChangedListener(curFreqTextWatcher);
+//        scanFreqStartEditText.setOnFocusChangeListener(new android.view.View.OnFocusChangeListener() {  
+//            @Override  
+//            public void onFocusChange(View v, boolean hasFocus) {  
+//                if(hasFocus) {
+//		        // 此处为得到焦点时的处理内容
+//		        } else {
+//		        // 此处为失去焦点时的处理内容
+//		        	double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
+//					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
+//						freqInputErrDialog(MainActivity.this,"");
+//					}else {
+//						curFreqHz = tmpValue;
+//					}
+//		        }
+//            }
+//        });
+        scanFreqStartEditText.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				// TODO Auto-generated method stub
+				if(actionId == EditorInfo.IME_ACTION_DONE){
+		        	double tmpValue=scanfCurFreqFromScreen(scanFreqStartEditText);
+					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
+						freqInputErrDialog(MainActivity.this,Double.toString(tmpValue/MHZ));
+					}else {
+						scanStartFreqHz = tmpValue;
+						InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE); 
+						imm.hideSoftInputFromWindow(curFreqEditText.getWindowToken(), 0);
+					}					
+					return true;
+				}
+				return false;
+			}
+		});		
+		
+	}
+	
+	public void scanStopFreqEditTextInit() {
+		scanFreqStopEditText = (EditText) findViewById(R.id.scan_freq_stop);
+		scanFreqStopEditText.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
+		scanFreqStopEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
+		scanFreqStopEditText.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
+		scanFreqStopEditText.setText(Double.toString(scanStopFreqHz/MHZ));
+//        scanFreqStopEditText.addTextChangedListener(curFreqTextWatcher);
+//        scanFreqStopEditText.setOnFocusChangeListener(new android.view.View.OnFocusChangeListener() {  
+//            @Override  
+//            public void onFocusChange(View v, boolean hasFocus) {  
+//                if(hasFocus) {
+//		        // 此处为得到焦点时的处理内容
+//		        } else {
+//		        // 此处为失去焦点时的处理内容
+//		        	double tmpValue=scanfCurFreqFromScreen(curFreqEditText);
+//					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
+//						freqInputErrDialog(MainActivity.this,"");
+//					}else {
+//						curFreqHz = tmpValue;
+//					}
+//		        }
+//            }
+//        });
+		scanFreqStopEditText.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				// TODO Auto-generated method stub
+				if(actionId == EditorInfo.IME_ACTION_DONE){
+		        	double tmpValue=scanfCurFreqFromScreen(scanFreqStopEditText);
+					if((tmpValue<minFreqHz) || (tmpValue>maxFreqHz)){
+						freqInputErrDialog(MainActivity.this,Double.toString(tmpValue/MHZ));
+					}else {
+						scanStopFreqHz = tmpValue;
+						InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE); 
+						imm.hideSoftInputFromWindow(curFreqEditText.getWindowToken(), 0);
+					}					
+					return true;
+				}
+				return false;
+			}
+		});		
+		
+	}
+	
 }
