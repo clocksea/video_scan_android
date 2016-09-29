@@ -4,140 +4,105 @@
     android:layout_height="fill_parent" 
     android:orientation="horizontal"
     android:baselineAligned="false">
-
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="1"
         android:orientation="vertical" >
-
-        <LinearLayout 
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-	         <TextView
-	            android:id="@+id/curFreqInfo"
+		<LinearLayout 
+		    android:layout_width="fill_parent"
+		    android:layout_height="40dp"
+		    android:gravity="center"
+		    android:orientation="horizontal">
+		    <TextView
+				android:id="@+id/curRSSIInfo"
 				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
+				android:layout_height="fill_parent"
 				android:gravity="left"
 				android:layout_weight="1"
+				android:textSize="20sp"
 				android:background="@drawable/bg_edittext_normal"
-				android:text="当前监视频率" />
-	         <TextView
-	            android:id="@+id/curRSSIInfo"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:gravity="left"
-	            android:layout_weight="1"
-	            android:background="@drawable/bg_edittext_normal"
-	            android:text="当前场强" />           
-        </LinearLayout>
-        
+				android:text="当前场强" />  
+		    <Button
+				android:id="@+id/freq_down"
+				android:layout_x="0dp"
+				android:layout_width="100dp"
+				android:layout_height="fill_parent"
+				android:text="-" 
+				android:background="@drawable/bg_alibuybutton"/> 
+		
+		          <EditText
+		              android:id="@+id/cur_freq"
+		              android:layout_x="110dp"
+		              android:layout_width="140dp"
+		              android:layout_height="fill_parent"
+		              android:background="@drawable/bg_edittext"
+		              android:imeOptions="actionDone"
+		              android:hint="请输出当前频率" />
+		          <TextView
+		              android:id="@+id/freqUnit"
+		              android:layout_width="wrap_content"
+		              android:layout_height="fill_parent"
+		              android:layout_x="250dp"
+		              android:background="@drawable/bg_edittext"
+		              android:gravity="center_vertical"
+		              android:text="MHz" />
+		          <Button
+						android:id="@+id/freq_up"
+						android:layout_x="280dp"
+			            android:layout_width="100dp"
+			            android:layout_height="fill_parent"
+			            android:text="+" 
+			            android:background="@drawable/bg_alibuybutton"/>  		    	
+       
+    </LinearLayout>    
+
         <SurfaceView
             android:id="@+id/mediarecorder2_Surfaceview"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="540dp"
             android:layout_weight="1" />
-
-        <LinearLayout
+        <AbsoluteLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="8"
             android:orientation="horizontal" >
-
             <Button
                 android:id="@+id/start"
-                android:layout_width="fill_parent"
+                android:layout_x="0dp"
+                android:layout_width="300dp"
                 android:layout_height="fill_parent"
-                android:layout_weight="1"
                 android:background="@drawable/bg_alibuybutton"
                 android:text="录像" />
 
             <Button
                 android:id="@+id/playOld"
-                android:layout_width="fill_parent"
+                android:layout_width="300dp"
                 android:layout_height="fill_parent"
-                android:layout_weight="1"
+                android:layout_x="382dp"
                 android:background="@drawable/bg_alibuybutton"
                 android:text="播放历史录像" />
-        </LinearLayout>
+
+        </AbsoluteLayout>
     </LinearLayout>
-    <AbsoluteLayout 
+   <AbsoluteLayout 
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="2">
-
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_x="0dp"
-            android:layout_y="0dp"
-            android:gravity="left"
-            android:text="当前监视频率" />
-        <LinearLayout 
-            android:layout_width="fill_parent"
-            android:layout_height="60dp"
-            android:gravity="center"
-            android:layout_x="0dp"
-            android:layout_y="20dp"
-            android:orientation="horizontal">
-            <Button
-				android:id="@+id/freq_down"
-	            android:layout_width="fill_parent"
-	            android:layout_height="fill_parent"
-	            android:layout_weight="4"
-	            android:text="-" 
-	            android:background="@drawable/bg_alibuybutton"/> 
-
-            <EditText
-                android:id="@+id/cur_freq"
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:background="@drawable/bg_edittext"
-                android:imeOptions="actionDone"
-                android:hint="请输出当前频率" />
-            <TextView 
-                android:id="@+id/freqUnit"
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:background="@drawable/bg_edittext"
-                android:gravity="center_vertical"
-                android:text="MHz"/>
-
-<!--             <Spinner
-                android:id="@+id/curFreqRange"
-                android:layout_width="60dp"
-                android:layout_height="fill_parent" /> -->
-
-            <Button
-				android:id="@+id/freq_up"
-	            android:layout_width="fill_parent"
-	            android:layout_height="fill_parent"
-	            android:layout_weight="4"
-	            android:text="+" 
-	            android:background="@drawable/bg_alibuybutton"/>             
-<!--             <Button
-				android:id="@+id/freq_set"
-	            android:layout_width="fill_parent"
-	            android:layout_height="fill_parent"
-	            android:layout_weight="4"
-	            android:text="设置" 
-	            android:background="@drawable/bg_alibuybutton"/>  -->
-        </LinearLayout>        
   
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="20dp"
             android:layout_x="0dp"
-            android:layout_y="100dp"
+            android:layout_y="0dp"
             android:gravity="left"
             android:text="频率扫描参数" />
         <LinearLayout 
 		    android:layout_width="fill_parent"
-		    android:layout_height="60dp"
+		    android:layout_height="40dp"
 		    android:gravity="center"
 		    android:layout_x="0dp"
-		    android:layout_y="120dp"
+		    android:layout_y="20dp"
 		    android:orientation="horizontal">
 
             <EditText
@@ -178,25 +143,24 @@
        		    android:id="@+id/scan"
        		    android:layout_width="fill_parent"
        		    android:layout_height="40dp"
-       		    android:layout_x="-1dp"
-       		    android:layout_y="185dp"
+		    	android:layout_x="0dp"
+		    	android:layout_y="60dp"
        		    android:background="@drawable/bg_alibuybutton"
        		    android:text="扫描" />   
        		<LinearLayout
        		    android:layout_width="fill_parent"
-       		    android:layout_height="210dp"
+       		    android:layout_height="360dp"
        		    android:layout_x="0dp"
-       		    android:layout_y="250dp"
+       		    android:layout_y="100dp"
        		    android:gravity="center"
        		    android:orientation="vertical" >
 
-       			<TextView
-       			    android:id="@+id/serial_recv"
-       			    android:layout_width="fill_parent"
-       			    android:layout_height="224dp"
-       			    android:fadeScrollbars="false"
-       			    android:scrollbars="vertical"
-       			    android:singleLine="false" />
+       			<ListView
+       			    android:id="@+id/lv"
+       			    android:layout_width="match_parent"
+       			    android:layout_height="match_parent" >
+
+       			</ListView>
         		    
        		</LinearLayout>
 
