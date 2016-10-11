@@ -66,6 +66,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -89,6 +90,7 @@ public class MainActivity extends Activity {
 	private Button curFreqUpButton;
 	private Button curFreqDownButton;
 	private Button scanButton;
+	private ProgressBar scanProgressBar;
 //	private Button freqSet;
 	private EditText curFreqEditText;
 	private EditText scanFreqStartEditText;
@@ -101,15 +103,15 @@ public class MainActivity extends Activity {
 	private double MHZ=(double)1000*1000;
 	private double KHZ=(double)1000;
 	private double scanStartFreqHz=(double)980*1000*1000;
-	private double scanStopFreqHz=(double)1300*1000*1000;
-	private long scanSpanHz=4*1000*1000;
+	private double scanStopFreqHz=(double)2530*1000*1000;
+	private long scanSpanHz=6*1000*1000;
 //	private TextView curFreqInfoTextView;
 	private StringBuffer serialStringBuffer=new StringBuffer();
 	
 	private static final int REQUEST_EX = 1;
 	
 	private boolean serialIsOpened=false;
-	private final String sdCardsString="/storage/sdcard1";
+	private final String sdCardsString="/storage/sdcard1/video";
 	
 	//串口测试临时数据----start
 	private Button mBtnStart;
@@ -120,6 +122,7 @@ public class MainActivity extends Activity {
 	FileOutputStream mOutputStream = null;
 	private ListView lv; 
 	private List<Map<String, Object>> rssiScanDataList = new ArrayList<Map<String, Object>>();
+	private List<Map<String, Object>> rssiScanDataListTmp = new ArrayList<Map<String, Object>>();
 	private scanRsultAdapter adapter;	
 	
 	private Handler mHandler = new Handler(){
@@ -175,6 +178,9 @@ public class MainActivity extends Activity {
 			curFreqUpButton.setClickable(false);
 			clearRssiScanResult();
 			scanButton.setText("扫描中,请等待...");
+			printfCurFreqToScreen(scanStartFreqHz);
+			scanProgressBar.setProgress(0);
+			scanButton.setVisibility(View.INVISIBLE);
 			
 		}else if(cmdString.indexOf("AT_SCAN_STOP\r\n")!=-1){
 			scanButton.setClickable(true);
@@ -182,6 +188,10 @@ public class MainActivity extends Activity {
 			curFreqUpButton.setClickable(true);			
 			scanButton.setText("扫描");
 			setCurFreqSerialPort(curFreqHz);
+			printfCurFreqToScreen(curFreqHz);
+			refleshScanResultList();
+			scanProgressBar.setProgress(0);
+			scanButton.setVisibility(View.VISIBLE);
 			
 		}else if(cmdString.indexOf("AT_RSSI=")!=-1){
 			//refreshLogView(cmdString);
@@ -201,11 +211,25 @@ public class MainActivity extends Activity {
 		}
         map.put("freq", Double.toString(freqMHzDouble));
         map.put("rssi", Double.toString(rssiDouble));
-        rssiScanDataList.add(map);
-        adapter.notifyDataSetChanged();
+        rssiScanDataListTmp.add(map);
+        ////adapter.notifyDataSetChanged();
+	};
+	
+	private void refleshScanResultList() {
+		HashMap<String, Object> map;
+		
+		Collections.sort(rssiScanDataListTmp,new sortByRssi());
+		
+		for(int i = 0;i < rssiScanDataListTmp.size(); i ++){
+			map = (HashMap<String, Object>) rssiScanDataListTmp.get(i);
+			rssiScanDataList.add(map);   
+			if(i>=20)break;
+        }
+		adapter.notifyDataSetChanged();
 	};
 	
 	private void clearRssiScanResult(){
+		rssiScanDataListTmp.clear();
 		rssiScanDataList.clear();
 		adapter.notifyDataSetChanged();
 	};
@@ -215,19 +239,25 @@ public class MainActivity extends Activity {
 		String [] strArrayStrings = tmp.split(",");
 		Double freqMHzDouble;
 		Double rssiDouble;
+		int process;
 		
 		if(strArrayStrings.length!=3)
 			return;
 		rssiDouble=Double.valueOf(strArrayStrings[2]);
-		if(rssiDouble>700)
-			return;
+
 		freqMHzDouble=Double.valueOf(strArrayStrings[1])/KHZ;
-		refreshLogView("频率:"+freqMHzDouble.toString()+"MHz"+",     场强:"+strArrayStrings[2]);
+		refreshLogView("freq:"+freqMHzDouble.toString()+"MHz"+",      rssi:"+strArrayStrings[2]);
 		
-		updateRssiScanResult(freqMHzDouble,rssiDouble);
+		//if(rssiDouble<750)
+			updateRssiScanResult(freqMHzDouble,rssiDouble);
+		
+		printfCurFreqToScreen(freqMHzDouble*MHZ);
 //		for (int i = 0; i < strArrayStrings.length; i++){
 //			refreshLogView(strArrayStrings[i]);
-//		}		
+//		}
+		
+		process = (int) (((freqMHzDouble*MHZ)-scanStartFreqHz)/(scanStopFreqHz-scanStartFreqHz)*100);
+		scanProgressBar.setProgress(process);
 	};
 	
 	
@@ -316,6 +346,7 @@ public class MainActivity extends Activity {
         curFreqDownButton = (Button) findViewById(R.id.freq_down);
         curFreqUpButton = (Button) findViewById(R.id.freq_up);
         scanButton = (Button) findViewById(R.id.scan);
+        scanProgressBar = (ProgressBar) findViewById(R.id.scanProgressBar);
 //        curFreqInfoTextView = (TextView) findViewById(R.id.curFreqInfo);
         
         initRssiScanResultListView();
@@ -849,7 +880,7 @@ public class MainActivity extends Activity {
 					}else {
 						scanStartFreqHz = tmpValue;
 						InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE); 
-						imm.hideSoftInputFromWindow(curFreqEditText.getWindowToken(), 0);
+						imm.hideSoftInputFromWindow(scanFreqStartEditText.getWindowToken(), 0);
 					}					
 					return true;
 				}
@@ -864,6 +895,7 @@ public class MainActivity extends Activity {
 		lv = (ListView) findViewById(R.id.lv);
         adapter = new scanRsultAdapter(this);
         rssiScanDataList.clear();
+        rssiScanDataListTmp.clear();
         lv.setAdapter(adapter);	
         lv.setOnItemClickListener(new OnItemClickListener() {
 
@@ -978,7 +1010,7 @@ public class MainActivity extends Activity {
 					}else {
 						scanStopFreqHz = tmpValue;
 						InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE); 
-						imm.hideSoftInputFromWindow(curFreqEditText.getWindowToken(), 0);
+						imm.hideSoftInputFromWindow(scanFreqStopEditText.getWindowToken(), 0);
 					}					
 					return true;
 				}
@@ -1026,7 +1058,7 @@ public class MainActivity extends Activity {
 	
 	public void powerOnRF(){
 		String fileName = "/sys/devices/platform/leds-gpio/leds/led1" + "/brightness";
-		String data = "1";
+		String data = "0";
 		try {
 			DeviceIO.write(fileName, data);
 		} catch (IOException e) {
@@ -1035,11 +1067,33 @@ public class MainActivity extends Activity {
 	}
 	public void powerOffRF(){
 		String fileName = "/sys/devices/platform/leds-gpio/leds/led1" + "/brightness";
-		String data = "0";
+		String data = "1";
 		try {
 			DeviceIO.write(fileName, data);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}	
+	public class sortByRssi implements Comparator{
+
+		@Override
+		public int compare(Object lhs, Object rhs) {
+			// TODO Auto-generated method stub
+			Map<String, Object> map1 = (Map<String, Object>) lhs;
+			Map<String, Object> map2 = (Map<String, Object>) rhs;
+			Double rssi1 = Double.parseDouble((String) map1.get("rssi"));
+			Double rssi2 = Double.parseDouble((String) map2.get("rssi"));
+			
+			if(rssi1>rssi2){
+				return 1;
+			}
+			else if (rssi1==rssi2) {
+				return 0;
+			}
+			else {
+				return -1;
+			}
+		}
+		
+	}
 }

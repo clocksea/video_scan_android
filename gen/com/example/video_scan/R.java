@@ -457,32 +457,34 @@ public final class R {
         public static final int ex_doc=0x7f020006;
         public static final int ex_folder=0x7f020007;
         public static final int ic_launcher=0x7f020008;
-        public static final int rssi0=0x7f020009;
-        public static final int rssi1=0x7f02000a;
-        public static final int rssi3=0x7f02000b;
-        public static final int rssi5=0x7f02000c;
-        public static final int textview_border=0x7f02000d;
+        public static final int progress_selector=0x7f020009;
+        public static final int rssi0=0x7f02000a;
+        public static final int rssi1=0x7f02000b;
+        public static final int rssi3=0x7f02000c;
+        public static final int rssi5=0x7f02000d;
+        public static final int textview_border=0x7f02000e;
     }
     public static final class id {
-        public static final int action_settings=0x7f090012;
+        public static final int action_settings=0x7f090013;
         public static final int curRSSIInfo=0x7f090000;
         public static final int cur_freq=0x7f090002;
-        public static final int drawview=0x7f090010;
-        public static final int freq=0x7f09000d;
+        public static final int drawview=0x7f090011;
+        public static final int freq=0x7f09000e;
         public static final int freqUnit=0x7f090003;
         public static final int freq_down=0x7f090001;
         public static final int freq_up=0x7f090004;
-        public static final int img=0x7f09000c;
-        public static final int info=0x7f090011;
-        public static final int lv=0x7f09000b;
+        public static final int img=0x7f09000d;
+        public static final int info=0x7f090012;
+        public static final int lv=0x7f09000c;
         public static final int mediarecorder2_Surfaceview=0x7f090005;
         public static final int playOld=0x7f090007;
-        public static final int rssi=0x7f09000e;
-        public static final int scan=0x7f09000a;
+        public static final int rssi=0x7f09000f;
+        public static final int scan=0x7f09000b;
+        public static final int scanProgressBar=0x7f09000a;
         public static final int scan_freq_start=0x7f090008;
         public static final int scan_freq_stop=0x7f090009;
         public static final int start=0x7f090006;
-        public static final int title=0x7f09000f;
+        public static final int title=0x7f090010;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;

@@ -138,20 +138,38 @@
                 android:gravity="center_vertical"
                 android:text="MHz"/>         	
         
-       		</LinearLayout>   
-       		<Button
-       		    android:id="@+id/scan"
+       		</LinearLayout>
+       		<RelativeLayout 
        		    android:layout_width="fill_parent"
        		    android:layout_height="40dp"
-		    	android:layout_x="0dp"
-		    	android:layout_y="60dp"
-       		    android:background="@drawable/bg_alibuybutton"
-       		    android:text="扫描" />   
+       		    android:layout_x="0dp"
+       		    android:layout_y="70dp"
+       		    android:gravity="bottom">
+
+           		<ProgressBar 
+           		    android:id="@+id/scanProgressBar"
+           		    android:layout_width="fill_parent"
+           		    android:layout_height="fill_parent"
+           		    android:background="@drawable/bg_alibuybutton"
+            		android:max="100"
+            		android:progress="50"
+            		android:progressDrawable="@drawable/progress_selector"
+            		style="?android:attr/progressBarStyleHorizontal"/>
+           		
+           		<Button
+	       		    android:id="@+id/scan"
+	       		    android:layout_width="fill_parent"
+	       		    android:layout_height="fill_parent"
+	       		    android:background="@drawable/bg_alibuybutton"
+	       		    android:text="扫描" 
+	       		    android:visibility="visible"/>		    
+       		</RelativeLayout>   
+ 
        		<LinearLayout
        		    android:layout_width="fill_parent"
-       		    android:layout_height="360dp"
+       		    android:layout_height="400dp"
        		    android:layout_x="0dp"
-       		    android:layout_y="100dp"
+       		    android:layout_y="120dp"
        		    android:gravity="center"
        		    android:orientation="vertical" >
 
