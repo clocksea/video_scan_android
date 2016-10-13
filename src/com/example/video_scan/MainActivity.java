@@ -217,15 +217,41 @@ public class MainActivity extends Activity {
 	
 	private void refleshScanResultList() {
 		HashMap<String, Object> map;
+		int max=20;
+		double min=(double) 1000000;
+		double rssi;
+		int posi=-1;
+		//Collections.sort(rssiScanDataListTmp,new sortByRssi());
 		
-		Collections.sort(rssiScanDataListTmp,new sortByRssi());
+		//saveSerialLogToFile("Collections.sort\r\n");
+		if(rssiScanDataListTmp.size()<max)max=rssiScanDataListTmp.size();
 		
-		for(int i = 0;i < rssiScanDataListTmp.size(); i ++){
-			map = (HashMap<String, Object>) rssiScanDataListTmp.get(i);
-			rssiScanDataList.add(map);   
-			if(i>=20)break;
-        }
+		for (int j = 0; j < max; j++) {
+			min=(double) 1000000;
+			posi=-1;
+			for(int i = 0;i < rssiScanDataListTmp.size(); i ++){
+				map = (HashMap<String, Object>) rssiScanDataListTmp.get(i);
+				rssi=Double.parseDouble(map.get("rssi").toString());
+				if(rssi<min){
+					min=rssi;
+					posi=i;
+				}
+	        }
+			if(posi != -1){
+				map = (HashMap<String, Object>) rssiScanDataListTmp.get(posi);
+				rssiScanDataList.add(map);
+				rssiScanDataListTmp.remove(posi);
+			}
+			
+		}
+		
+
+		
+		//saveSerialLogToFile("rssiScanDataList.add(map)\r\n");
+		
 		adapter.notifyDataSetChanged();
+		
+		//saveSerialLogToFile("adapter.notifyDataSetChanged()\r\n");
 	};
 	
 	private void clearRssiScanResult(){
@@ -967,9 +993,11 @@ public class MainActivity extends Activity {
                 holder = (scanRsultViewHolder)convertView.getTag();
             }
             holder.img.setBackgroundResource((Integer)rssiScanDataList.get(position).get("img"));
-            holder.freqTextView.setText((String)rssiScanDataList.get(position).get("freq"));
-            holder.rssiTextView.setText((String)rssiScanDataList.get(position).get("rssi"));
-                                                            
+            holder.freqTextView.setText(rssiScanDataList.get(position).get("freq").toString());
+            holder.rssiTextView.setText(rssiScanDataList.get(position).get("rssi").toString());
+                  
+            //saveSerialLogToFile("getView:"+position+"\r\n");
+            
             return convertView;
         }
                                                         
