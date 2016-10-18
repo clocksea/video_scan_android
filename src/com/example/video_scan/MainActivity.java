@@ -202,13 +202,13 @@ public class MainActivity extends Activity {
 	private void updateRssiScanResult(Double freqMHzDouble,Double rssiDouble){
         HashMap<String, Object> map = new HashMap<String, Object>();
         
-        if(rssiDouble<550){
-        	map.put("img", R.drawable.rssi5);
-        }else if(rssiDouble<600){
-        	map.put("img", R.drawable.rssi3);
-		}else {
-			map.put("img", R.drawable.rssi1);
-		}
+//        if(rssiDouble<550){
+//        	map.put("img", R.drawable.rssi5);
+//        }else if(rssiDouble<600){
+//        	map.put("img", R.drawable.rssi3);
+//		}else {
+//			map.put("img", R.drawable.rssi1);
+//		}
         map.put("freq", Double.toString(freqMHzDouble));
         map.put("rssi", Double.toString(rssiDouble));
         rssiScanDataListTmp.add(map);
@@ -217,19 +217,23 @@ public class MainActivity extends Activity {
 	
 	private void refleshScanResultList() {
 		HashMap<String, Object> map;
-		int max=20;
+		HashMap<String, Object> map2;
+		int max=40;
 		double min=(double) 1000000;
 		double rssi;
+		double freq;
 		int posi=-1;
+		int j,i;
 		//Collections.sort(rssiScanDataListTmp,new sortByRssi());
 		
 		//saveSerialLogToFile("Collections.sort\r\n");
+		
 		if(rssiScanDataListTmp.size()<max)max=rssiScanDataListTmp.size();
 		
-		for (int j = 0; j < max; j++) {
+		for (j = 0; j < max; j++) {
 			min=(double) 1000000;
 			posi=-1;
-			for(int i = 0;i < rssiScanDataListTmp.size(); i ++){
+			for(i = 0;i < rssiScanDataListTmp.size(); i ++){
 				map = (HashMap<String, Object>) rssiScanDataListTmp.get(i);
 				rssi=Double.parseDouble(map.get("rssi").toString());
 				if(rssi<min){
@@ -245,8 +249,40 @@ public class MainActivity extends Activity {
 			
 		}
 		
+		i=0;
+		while (true) {
+			map = (HashMap<String, Object>) rssiScanDataList.get(i);
+			freq=Double.parseDouble(map.get("freq").toString());
+//			refreshLogView("chk freq:"+map.get("freq").toString()+"MHz"+",rssi:"+map.get("rssi").toString()+"\r\n");
+			for(j=i+1; j < rssiScanDataList.size(); j ++){
+				map2 = (HashMap<String, Object>) rssiScanDataList.get(j);
+//				refreshLogView("chk-"+j+",freq:"+map2.get("freq").toString()+"MHz"+",rssi:"+map2.get("rssi").toString()+"\r\n");
+				if(Math.abs(freq-Double.parseDouble(map2.get("freq").toString()))<=2*(scanSpanHz/MHZ)){
+//					refreshLogView("del,freq:"+map2.get("freq").toString()+"MHz"+",rssi:"
+//									+map2.get("rssi").toString()+","+Math.abs(freq-Double.parseDouble(map2.get("freq").toString()))
+//									+","+2*(scanSpanHz/MHZ)+"\r\n");
+					rssiScanDataList.remove(j);
+				}
+			}
+			i++;
+			if(i>=rssiScanDataList.size()-1)
+				break;
+		}
 
-		
+		for(j=0; j < rssiScanDataList.size(); j ++){
+			map = (HashMap<String, Object>) rssiScanDataList.get(j);
+			if(j<(rssiScanDataList.size()/5)){
+				map.put("img", R.drawable.rssi5);
+			}else if(j<(2*rssiScanDataList.size()/5)){
+				map.put("img", R.drawable.rssi4);
+			}else if(j<(3*rssiScanDataList.size()/5)){
+				map.put("img", R.drawable.rssi3);
+			}else if(j<(4*rssiScanDataList.size()/5)){
+				map.put("img", R.drawable.rssi2);
+			}else {
+				map.put("img", R.drawable.rssi1);
+			}
+		}		
 		//saveSerialLogToFile("rssiScanDataList.add(map)\r\n");
 		
 		adapter.notifyDataSetChanged();
