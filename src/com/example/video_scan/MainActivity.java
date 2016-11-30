@@ -104,6 +104,8 @@ public class MainActivity extends Activity {
 	private double KHZ=(double)1000;
 	private double scanStartFreqHz=(double)980*1000*1000;
 	private double scanStopFreqHz=(double)2530*1000*1000;
+	private double band1StopFreqHz = (double)1300*1000*1000;
+	private double band2StartFreqHz = (double)1800*1000*1000;
 	private long scanSpanHz=6*1000*1000;
 //	private TextView curFreqInfoTextView;
 	private StringBuffer serialStringBuffer=new StringBuffer();
@@ -904,7 +906,6 @@ public class MainActivity extends Activity {
 				return false;
 			}
 		});		
-		
 	}
 	
 	public void scanStartFreqEditTextInit() {

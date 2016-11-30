@@ -110,7 +110,8 @@
                 android:layout_width="127dp"
                 android:layout_height="fill_parent"
                 android:background="@drawable/bg_edittext"
-                android:hint="开始频率" />
+                android:hint="开始频率" 
+                android:editable="false"/>
 
             <TextView 
                 android:layout_width="wrap_content"
@@ -129,7 +130,8 @@
          	    android:layout_width="127dp"
          	    android:layout_height="fill_parent"
          	    android:background="@drawable/bg_edittext"
-         	    android:hint="结束频率" />
+         	    android:hint="结束频率" 
+         	    android:editable="false"/>
 
             <TextView 
                 android:layout_width="wrap_content"
