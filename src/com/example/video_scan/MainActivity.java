@@ -1,7 +1,7 @@
 package com.example.video_scan;
 
 import com.android.serialport.SerialPort;
-
+import com.example.video_scan.R;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,7 +20,11 @@ import java.util.StringTokenizer;
 
 //import org.xboot.test.SerialActivity.ReadThread;
 import com.android.serialport.SerialPort;
+import com.example.video_scan.AlbumAty;
 import com.example.explorer.ExDialog;
+import com.zhongh.camera.view.CameraContainer;
+import com.zhongh.camera.view.CameraView;
+
 import android.R.integer;
 import android.R.string;
 import android.app.Activity;
@@ -85,6 +89,7 @@ public class MainActivity extends Activity {
 	private int minute = 0;
 	private int second = 0;
 	private boolean bool;	
+	private boolean IsRecording=false;
 	private Camera camera;
 	private SurfaceHolder.Callback callback;
 	private Button curFreqUpButton;
@@ -126,6 +131,8 @@ public class MainActivity extends Activity {
 	private List<Map<String, Object>> rssiScanDataList = new ArrayList<Map<String, Object>>();
 	private List<Map<String, Object>> rssiScanDataListTmp = new ArrayList<Map<String, Object>>();
 	private scanRsultAdapter adapter;	
+	private CameraView myCameraView;
+	private String mSaveRoot;	
 	
 	private Handler mHandler = new Handler(){
 		@Override
@@ -411,6 +418,10 @@ public class MainActivity extends Activity {
         curFreqUpButton = (Button) findViewById(R.id.freq_up);
         scanButton = (Button) findViewById(R.id.scan);
         scanProgressBar = (ProgressBar) findViewById(R.id.scanProgressBar);
+        myCameraView = (CameraView) findViewById(R.id.myCameraView);
+		//mSaveRoot="test";
+		//mContainer.setRootPath(mSaveRoot);
+		
 //        curFreqInfoTextView = (TextView) findViewById(R.id.curFreqInfo);
         
         initRssiScanResultListView();
@@ -423,11 +434,30 @@ public class MainActivity extends Activity {
 //        mBtnSend = (Button)findViewById(R.id.serial_send);
 //        mTextMsg = (TextView)findViewById(R.id.serial_recv);
 //        mTextMsg.setMovementMethod(ScrollingMovementMethod.getInstance()) ;
-        initSurfaceView();
+   /*     initSurfaceView();*/
         
 		//mTextMsg.setText("");
         
 		serialTest("/dev/ttyAMA1");
+		
+		bt_start_record.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				if(IsRecording == false){
+					myCameraView.startRecord();
+					IsRecording = true;
+					bt_start_record.setText("正在录像中...");
+					btPlayOld.setClickable(false);
+					
+				}else {
+					myCameraView.stopRecord();
+					IsRecording = false;
+					bt_start_record.setText("录像");	
+					btPlayOld.setClickable(true);
+				}
+			}
+		});
 		
 		scanButton.setOnClickListener(new OnClickListener() {
 			
@@ -449,11 +479,14 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				Intent intent = new Intent();
-				intent.putExtra("explorer_title",
-						getString(R.string.dialog_read_from_dir));
-				intent.setDataAndType(Uri.fromFile(new File("/storage/sdcard1")), "*/*");
-				intent.setClass(MainActivity.this, ExDialog.class);
-				startActivityForResult(intent, REQUEST_EX);
+				intent.setClass(MainActivity.this, AlbumAty.class);
+				startActivity(intent);
+//				Intent intent = new Intent();
+//				intent.putExtra("explorer_title",
+//						getString(R.string.dialog_read_from_dir));
+//				intent.setDataAndType(Uri.fromFile(new File("/storage/sdcard1")), "*");
+//				intent.setClass(MainActivity.this, ExDialog.class);
+//				startActivityForResult(intent, REQUEST_EX);
 			}
 		});
 		
@@ -606,7 +639,7 @@ public class MainActivity extends Activity {
 		}
 	};
     
-    private void initSurfaceView() {
+/*    private void initSurfaceView() {
     	mSurfaceview = (SurfaceView) this.findViewById(R.id.mediarecorder2_Surfaceview); 
     	mSurfaceview.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     	mSurfaceview.setKeepScreenOn(true);
@@ -642,7 +675,7 @@ public class MainActivity extends Activity {
 		};
         //为SurfaceView设置回调函数
         mSurfaceview.getHolder().addCallback(callback);
-    };
+    };*/
     
     //当我们的程序开始运行，即使我们没有开始录制视频，我们的surFaceView中也要显示当前摄像头显示的内容
     private void doChange(SurfaceHolder holder) {

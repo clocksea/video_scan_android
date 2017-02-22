@@ -14,7 +14,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />  
     <uses-permission android:name="android.permission.CAMERA" />  
     <uses-feature android:name="android.hardware.camera" />
-      
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />   
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -38,7 +38,21 @@
 			android:windowSoftInputMode="adjustUnspecified|stateHidden"
             android:name="com.example.explorer.ExDialog"
             android:label="@string/app_name" >
-        </activity>        
+        </activity>
+        <activity
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"  
+			android:screenOrientation="landscape"
+			android:windowSoftInputMode="adjustUnspecified|stateHidden"
+            android:name="com.example.video_scan.AlbumAty"
+            android:label="@string/app_name" >
+        </activity>  
+        <activity
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"  
+			android:screenOrientation="landscape"
+			android:windowSoftInputMode="adjustUnspecified|stateHidden"
+            android:name="com.example.video_scan.AlbumItemAty"
+            android:label="@string/app_name" >
+        </activity>                       
     </application>
 
 </manifest>
