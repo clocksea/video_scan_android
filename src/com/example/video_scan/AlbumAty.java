@@ -151,8 +151,10 @@ public class AlbumAty extends Activity implements View.OnClickListener,AlbumGrid
 			showDeleteDialog();
 			break;
 		case R.id.header_bar_back:
-			Intent intent=new Intent(this,MainActivity.class);
-			startActivity(intent);
+			//Intent intent=new Intent(this,MainActivity.class);
+			//startActivity(intent);
+			AlbumAty.this.setResult(RESULT_OK, getIntent());
+			AlbumAty.this.finish();
 			break;
 		default:
 			break;

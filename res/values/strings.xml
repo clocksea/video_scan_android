@@ -9,6 +9,7 @@
     <!-- 存储文件文件夹 -->
     <string name="Files">Files</string>
     <string name="VideoRecordDir">/storage/sdcard1/scan_video_record/</string>
+    <string name="mySDCardDir">/storage/sdcard1/</string>
     <!-- 图像文件夹 -->
     <string name="Image">Image</string>
     <!-- 缩略图文件夹 -->

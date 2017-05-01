@@ -179,10 +179,12 @@ public class AlbumItemAty extends Activity implements OnClickListener,OnSingleTa
 		// TODO Auto-generated method stub
 		switch (v.getId()) {
 		case R.id.header_bar_photo_back:
-			startActivity(new Intent(this,AlbumAty.class));
+//			startActivity(new Intent(this,AlbumAty.class));
+			AlbumItemAty.this.setResult(RESULT_OK, getIntent());
+			AlbumItemAty.this.finish();			
 			break;
 		case R.id.header_bar_photo_to_camera:
-			startActivity(new Intent(this,MainActivity.class));
+//			startActivity(new Intent(this,MainActivity.class));
 			break;
 		case R.id.delete:
 			String result=mViewPager.deleteCurrentPath();

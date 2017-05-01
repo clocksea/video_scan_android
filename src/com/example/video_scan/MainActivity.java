@@ -40,6 +40,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StatFs;
 import android.provider.Settings.System;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -90,6 +91,7 @@ public class MainActivity extends Activity {
 	private int second = 0;
 	private boolean bool;	
 	private boolean IsRecording=false;
+	private boolean isScanningBoolean=false;
 	private Camera camera;
 	private SurfaceHolder.Callback callback;
 	private Button curFreqUpButton;
@@ -104,7 +106,7 @@ public class MainActivity extends Activity {
 	private double maxFreqHz=(double)2530*1000*1000;
 	private double minFreqHz=(double)980*1000*1000;
 	private double freqHz=(double)980*1000*1000;
-	private double freqSpanHz=(double)100*1000;
+	private double freqSpanHz=(double)200*1000;
 	private double MHZ=(double)1000*1000;
 	private double KHZ=(double)1000;
 	private double scanStartFreqHz=(double)980*1000*1000;
@@ -177,10 +179,23 @@ public class MainActivity extends Activity {
 	private void procSerialCmd(String cmdString) {
 		//refreshLogView(cmdString);
 		if(cmdString.indexOf("AT_START_RUN\r\n")!=-1){
-			setCurFreqSerialPort(curFreqHz);
-			curFreqDownButton.setClickable(true);
-			curFreqUpButton.setClickable(true);				
+//			setCurFreqSerialPort(curFreqHz);
+//			curFreqDownButton.setClickable(true);
+//			curFreqUpButton.setClickable(true);				
+//			scanButton.setClickable(true);
+//			bt_start_record.setClickable(true);
+//			btPlayOld.setClickable(true);
 			scanButton.setClickable(true);
+			curFreqDownButton.setClickable(true);
+			curFreqUpButton.setClickable(true);			
+			scanButton.setText("扫描");
+			setCurFreqSerialPort(curFreqHz);
+			printfCurFreqToScreen(curFreqHz);
+			scanProgressBar.setProgress(0);
+			scanButton.setVisibility(View.VISIBLE);
+			bt_start_record.setClickable(true);
+			btPlayOld.setClickable(true);
+			isScanningBoolean = false;			
 		}else if(cmdString.indexOf("AT_SCAN_START\r\n")!=-1){
 			scanButton.setClickable(false);
 			curFreqDownButton.setClickable(false);
@@ -190,6 +205,9 @@ public class MainActivity extends Activity {
 			printfCurFreqToScreen(scanStartFreqHz);
 			scanProgressBar.setProgress(0);
 			scanButton.setVisibility(View.INVISIBLE);
+			bt_start_record.setClickable(false);
+			btPlayOld.setClickable(false);
+			isScanningBoolean = true;
 			
 		}else if(cmdString.indexOf("AT_SCAN_STOP\r\n")!=-1){
 			scanButton.setClickable(true);
@@ -201,6 +219,9 @@ public class MainActivity extends Activity {
 			refleshScanResultList();
 			scanProgressBar.setProgress(0);
 			scanButton.setVisibility(View.VISIBLE);
+			bt_start_record.setClickable(true);
+			btPlayOld.setClickable(true);
+			isScanningBoolean = false;
 			
 		}else if(cmdString.indexOf("AT_RSSI=")!=-1){
 			//refreshLogView(cmdString);
@@ -397,7 +418,63 @@ public class MainActivity extends Activity {
 //			mTextMsg.scrollTo(0,offset-mTextMsg.getHeight());
 //		}
 	};
+	private void noExistSDCardErrDialog(Context context, String msg){ 	  
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		final AlertDialog dialog; 
+		builder.setTitle("系统错误");//设置标题 
+		builder.setIcon(R.drawable.ic_launcher);//设置图标 
+		builder.setMessage("未检测到SD卡，请确认SD卡已经插入！" + msg);//设置内容
+		builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+				dialog.dismiss();
+			}
+		});
+		dialog=builder.show(); 	
+	};	
+	private boolean ExistSDCard() { 
+			File file = new File((String) this.getResources().getText(R.string.mySDCardDir));
+			if(file.exists() == true){
+				return true;
+			}else {
+				return false;
+			}
+//		  if (android.os.Environment.getExternalStorageState().equals(  
+//		    android.os.Environment.MEDIA_MOUNTED)) {  
+//		   return true;  
+//		  } else  
+//		   return false;  
+	}; 
+
+	public long getSDFreeSize(){  
+	     //取得SD卡文件路径  
+	     File path = Environment.getExternalStorageDirectory();   
+	     StatFs sf = new StatFs(path.getPath());   
+	     //获取单个数据块的大小(Byte)  
+	     long blockSize = sf.getBlockSize();   
+	     //空闲的数据块的数量  
+	     long freeBlocks = sf.getAvailableBlocks();  
+	     //返回SD卡空闲大小  
+	     //return freeBlocks * blockSize;  //单位Byte  
+	     //return (freeBlocks * blockSize)/1024;   //单位KB  
+	     return (freeBlocks * blockSize)/1024 /1024; //单位MB  
+	     };
 	
+	public long getSDAllSize(){  
+	     //取得SD卡文件路径  
+		 File path = Environment.getExternalStorageDirectory();   
+		 StatFs sf = new StatFs(path.getPath());   
+		 //获取单个数据块的大小(Byte)  
+		 long blockSize = sf.getBlockSize();   
+		 //获取所有数据块数  
+		 long allBlocks = sf.getBlockCount();  
+		 //返回SD卡大小  
+		 //return allBlocks * blockSize; //单位Byte  
+		 //return (allBlocks * blockSize)/1024; //单位KB  
+		 return (allBlocks * blockSize)/1024/1024; //单位MB  
+	   };
+	       
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -444,17 +521,23 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
+				
+/*				if(ExistSDCard()==false) {
+					noExistSDCardErrDialog(MainActivity.this,"");
+					return;
+				}*/
+				
 				if(IsRecording == false){
 					myCameraView.startRecord();
 					IsRecording = true;
 					bt_start_record.setText("正在录像中...");
-					btPlayOld.setClickable(false);
+					btPlayOld.setVisibility(View.INVISIBLE);
 					
 				}else {
 					myCameraView.stopRecord();
 					IsRecording = false;
 					bt_start_record.setText("录像");	
-					btPlayOld.setClickable(true);
+					btPlayOld.setVisibility(View.VISIBLE);
 				}
 			}
 		});
@@ -480,7 +563,7 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 				Intent intent = new Intent();
 				intent.setClass(MainActivity.this, AlbumAty.class);
-				startActivity(intent);
+				startActivityForResult(intent, REQUEST_EX);
 //				Intent intent = new Intent();
 //				intent.putExtra("explorer_title",
 //						getString(R.string.dialog_read_from_dir));
@@ -531,7 +614,7 @@ public class MainActivity extends Activity {
 							while(upLongClicked){
 								curFreqUpProcess();
 								try{  
-                                    Thread.sleep(250);  
+                                    Thread.sleep(150);  
                                 }catch(InterruptedException e){  
                                     e.printStackTrace();  
                                 }
@@ -574,7 +657,7 @@ public class MainActivity extends Activity {
 							while(downLongClicked){
 								curFreqDownProcess();
 								try{  
-                                    Thread.sleep(250);  
+                                    Thread.sleep(150);  
                                 }catch(InterruptedException e){  
                                     e.printStackTrace();  
                                 }
@@ -1194,4 +1277,11 @@ public class MainActivity extends Activity {
 		}
 		
 	}
+	public boolean onKeyDown(int keyCode, KeyEvent event) {  
+        if (keyCode == KeyEvent.KEYCODE_BACK) {  
+            return true;  
+        } 
+        return false;  
+    }
+
 }

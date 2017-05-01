@@ -8,7 +8,7 @@
         android:id="@+id/header_bar_navi"
         android:layout_width="fill_parent"
         android:layout_height="@dimen/album_header_bar_height"
-        android:background="@color/common_title_bg"
+        android:background="@drawable/bg_alibuybutton"
         android:orientation="horizontal" >
 
         <ImageView
@@ -30,7 +30,7 @@
             android:layout_marginRight="50.0dip"
             android:singleLine="true"
             android:text="@string/album_title"
-            android:textColor="@color/primary_title_text_color"
+            android:textColor="@color/black"
             android:textSize="19.0sp" />
 
         <TextView
@@ -51,7 +51,7 @@
         android:id="@+id/header_bar_select"
         android:layout_width="fill_parent"
         android:layout_height="@dimen/album_header_bar_height"
-        android:background="@color/common_title_bg"
+        android:background="@drawable/bg_alibuybutton"
         android:visibility="gone"
         android:orientation="horizontal" >
 

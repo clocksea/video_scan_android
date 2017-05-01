@@ -687,29 +687,30 @@ containing a value of this type.
         public static final int Files=0x7f070004;
         /**  图像文件夹 
          */
-        public static final int Image=0x7f070006;
+        public static final int Image=0x7f070007;
         /**  缩略图文件夹 
          */
-        public static final int Thumbnail=0x7f070007;
+        public static final int Thumbnail=0x7f070008;
         /**  视频文件夹 
          */
-        public static final int Video=0x7f070008;
+        public static final int Video=0x7f070009;
         public static final int VideoRecordDir=0x7f070005;
         public static final int action_settings=0x7f070002;
-        public static final int album_enter_select=0x7f070009;
-        public static final int album_message=0x7f070013;
-        public static final int album_phoot_select_all=0x7f07000c;
-        public static final int album_phoot_unselect_all=0x7f07000d;
-        public static final int album_photo_select_tip=0x7f07000b;
-        public static final int album_title=0x7f07000e;
-        public static final int api_cancel=0x7f07000a;
+        public static final int album_enter_select=0x7f07000a;
+        public static final int album_message=0x7f070014;
+        public static final int album_phoot_select_all=0x7f07000d;
+        public static final int album_phoot_unselect_all=0x7f07000e;
+        public static final int album_photo_select_tip=0x7f07000c;
+        public static final int album_title=0x7f07000f;
+        public static final int api_cancel=0x7f07000b;
         public static final int app_name=0x7f070000;
-        public static final int common_cut=0x7f070010;
-        public static final int common_delete=0x7f070011;
-        public static final int common_edit=0x7f070012;
+        public static final int common_cut=0x7f070011;
+        public static final int common_delete=0x7f070012;
+        public static final int common_edit=0x7f070013;
         public static final int dialog_read_from_dir=0x7f070003;
         public static final int hello_world=0x7f070001;
-        public static final int pgcommon_share=0x7f07000f;
+        public static final int mySDCardDir=0x7f070006;
+        public static final int pgcommon_share=0x7f070010;
     }
     public static final class style {
         /** 
